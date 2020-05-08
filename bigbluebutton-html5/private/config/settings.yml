@@ -85,7 +85,7 @@ public:
     enableNetworkMonitoring: false
     packetLostThreshold: 10
   kurento:
-    wsUrl: HOST
+    wsUrl: wss://schoolathome1.assessed.co.in/bbb-webrtc-sfu
     chromeDefaultExtensionKey: akgoaoikmbmhcopjgakkcepdgdgkjfbc
     chromeDefaultExtensionLink: https://chrome.google.com/webstore/detail/bigbluebutton-screenshare/akgoaoikmbmhcopjgakkcepdgdgkjfbc
     chromeExtensionKey: KEY
@@ -157,8 +157,8 @@ public:
     typingIndicator:
       enabled: true
   note:
-    enabled: false
-    url: ETHERPAD_HOST
+    enabled: true
+    url: https://schoolathome1.assessed.co.in/pad
     config:
       showLineNumbers: false
       showChat: false

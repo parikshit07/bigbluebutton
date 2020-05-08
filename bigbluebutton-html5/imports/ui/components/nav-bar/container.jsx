@@ -7,8 +7,11 @@ import Users from '/imports/api/users';
 import Auth from '/imports/ui/services/auth';
 import getFromUserSettings from '/imports/ui/services/users-settings';
 import userListService from '../user-list/service';
+import NoteService from '/imports/ui/components/note/service';
+import logger from '/imports/startup/client/logger';
 import Service from './service';
 import NavBar from './component';
+import { meetingIsBreakout } from '/imports/ui/components/app/service';
 
 const PUBLIC_CONFIG = Meteor.settings.public;
 const ROLE_MODERATOR = PUBLIC_CONFIG.user.role_moderator;
@@ -47,6 +50,18 @@ export default withTracker(() => {
     return hasUnreadMessages;
   };
 
+  const meetingMuteDisabledLog = () => logger.info({
+    logCode: 'useroptions_unmute_all',
+    extraInfo: { logType: 'moderator_action' },
+  }, 'moderator disabled meeting mute');
+
+  const isMeetingMuteOnStart = () => {
+    const { voiceProp } = Meetings.findOne({ meetingId: Auth.meetingID },
+      { fields: { 'voiceProp.muteOnStart': 1 } });
+    const { muteOnStart } = voiceProp;
+    return muteOnStart;
+  };
+
   const { connectRecordingObserver, processOutsideToggleRecording } = Service;
   const currentUser = Users.findOne({ userId: Auth.userID }, { fields: { role: 1 } });
   const openPanel = Session.get('openPanel');
@@ -55,6 +70,16 @@ export default withTracker(() => {
   const hasUnreadMessages = checkUnreadMessages();
 
   return {
+    toggleMuteAllUsersExceptPresenter: () => {
+      userListService.muteAllExceptPresenter(Auth.userID);
+      if (isMeetingMuteOnStart()) {
+        return meetingMuteDisabledLog();
+      }
+      return logger.info({
+        logCode: 'useroptions_mute_all_except_presenter',
+        extraInfo: { logType: 'moderator_action' },
+      }, 'moderator enabled meeting mute, all users muted except presenter');
+    },
     amIModerator,
     isExpanded,
     currentUserId: Auth.userID,
@@ -63,5 +88,8 @@ export default withTracker(() => {
     meetingId,
     presentationTitle: meetingTitle,
     hasUnreadMessages,
+    isBreakoutRoom: meetingIsBreakout(),
+    isMeteorConnected: Meteor.status().connected,
+    isMeetingMuted: isMeetingMuteOnStart(),
   };
 })(NavBarContainer);
